@@ -1,1 +1,1108 @@
-code please
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Constraint Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&family=Sora:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #0b1220;
+      --panel: #0f172a;
+      --surface: #111a2f;
+      --ink: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #7c3aed;
+      --accent-soft: rgba(124, 58, 237, 0.12);
+      --border: #1f2937;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 24px 80px rgba(0,0,0,0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(124, 58, 237, 0.14), rgba(11, 18, 32, 0.9)), radial-gradient(90% 90% at 80% 0%, rgba(6, 182, 212, 0.12), rgba(11, 18, 32, 1));
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand .badge {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(6, 182, 212, 0.16));
+      color: var(--ink);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .context {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .context .item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      border-radius: 12px;
+      color: var(--muted);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      backdrop-filter: blur(6px);
+    }
+    .item strong { color: var(--ink); }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+    .hero-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px 22px 10px;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 18px;
+    }
+    .hero-panel h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+    .hero-panel p {
+      margin: 6px 0 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      min-height: 620px;
+    }
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+    .progress {
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress .bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #22d3ee);
+      width: 0%;
+      transition: width 250ms ease;
+    }
+    .stage {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 18px;
+      margin-top: 12px;
+    }
+    .question-meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    .question-meta h3 {
+      margin: 6px 0 8px;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+    .question-meta .step {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .question-desc {
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .option {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 160ms ease, border 160ms ease, background 160ms ease;
+      color: var(--ink);
+    }
+    .option:hover { transform: translateY(-2px); border-color: rgba(124, 58, 237, 0.4); }
+    .option.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.18);
+    }
+    .option h4 { margin: 0 0 6px; font-size: 16px; }
+    .option p { margin: 0; color: var(--muted); line-height: 1.5; font-size: 14px; }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      gap: 10px;
+    }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent), #22d3ee);
+      color: #0b1220;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 14px 40px rgba(124, 58, 237, 0.35);
+      transition: transform 160ms ease;
+    }
+    .cta:hover { transform: translateY(-1px); }
+    .ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .landing {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      align-items: center;
+    }
+    .landing h2 {
+      margin: 0 0 10px;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+    .landing .lede {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+    .fact {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .fact small { color: var(--muted); font-weight: 500; }
+    .result {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .result-card {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .result-card h4 { margin: 4px 0; letter-spacing: -0.01em; }
+    .code-block {
+      background: #0a101d;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      color: #e5e7eb;
+      font-family: "SFMono-Regular", "Space Mono", ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .chip {
+      padding: 6px 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .copy {
+      align-self: flex-end;
+      background: transparent;
+      color: var(--ink);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .stack {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+    }
+    .stack .tile {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(255,255,255,0.02);
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .inline {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .muted { color: var(--muted); }
+    .hidden { display: none; }
+    @media (max-width: 900px) {
+      .landing { grid-template-columns: 1fr; }
+      .card { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        <div class="badge">Constraint Crafter</div>
+        <div>
+          <div style="font-weight:700;">Design Constraint Generator</div>
+          <div class="muted">Answer 12-15 intent questions &rarr; locked visual system + authority prompt</div>
+        </div>
+      </div>
+      <div class="chip-row">
+        <div class="chip">No content inputs</div>
+        <div class="chip">Design-first reasoning enforced</div>
+        <div class="chip">Reusable across any AI site builder</div>
+      </div>
+    </header>
+
+    <div class="context">
+      <div class="item"><strong>What it does:</strong> Translates subjective preferences into numeric, enforceable design rules instead of vague vibes.</div>
+      <div class="item"><strong>Output:</strong> Structured design constraint object + one strict master prompt that forbids improvisation.</div>
+      <div class="item"><strong>Goal:</strong> Two users with different choices get visibly different systems; one user gets consistent pages every time.</div>
+    </div>
+
+    <div class="layout">
+      <section class="hero-panel">
+        <h1>Stop getting generic AI sites.</h1>
+        <p>Capture the decisions that actually shape visual identity—hierarchy, motion, rigidity, and tone—then lock them into a reusable authority prompt.</p>
+        <div class="pill-row">
+          <div class="pill">12–15 single-focus questions</div>
+          <div class="pill">Spacing, typography, color, motion, component rules</div>
+          <div class="pill">Built-in critique + refinement loop</div>
+        </div>
+        <div class="stack" style="margin-top:12px;">
+          <div class="tile">
+            <strong>Constraint Translation Layer</strong><br>
+            Maps each answer to numeric rules: base spacing unit, grid width, heading scale, contrast ceiling, motion duration, button weight, and color usage ratios.
+          </div>
+          <div class="tile">
+            <strong>Authority Prompt</strong><br>
+            Defines the AI as an expert product designer + FE engineer. Forces design-first reasoning, critique, and strict adherence to the generated system.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="top-row">
+          <div style="font-weight:600;">Design Intent Wizard</div>
+          <div class="progress"><div class="bar" id="progressBar"></div></div>
+        </div>
+        <div class="stage" id="landingStage">
+          <div class="landing">
+            <div>
+              <h2>Answer a few questions. Get a design system that forces AI to stop making mid websites.</h2>
+              <p class="lede">Each screen focuses on one decision. We translate it into typography ranges, spacing math, color discipline, motion safety, and component rules.</p>
+              <div class="chip-row">
+                <div class="chip">No scrolling forms</div>
+                <div class="chip">Constraints, not copy</div>
+                <div class="chip">Ready-to-paste prompt</div>
+              </div>
+            </div>
+            <div>
+              <div class="fact">🎯 One intent per screen <small>12–15 steps</small></div>
+              <div class="fact">🧭 Guided defaults <small>Non-designers welcome</small></div>
+              <div class="fact">🛡️ Locked palette & typography <small>Consistent outputs</small></div>
+            </div>
+          </div>
+          <div class="controls" style="margin-top:14px;">
+            <button class="cta" id="startBtn">Start the flow</button>
+            <div class="muted">~5 minutes • focuses on hierarchy, tone, motion, contrast, and rigidity.</div>
+          </div>
+        </div>
+
+        <div class="stage hidden" id="questionStage">
+          <div class="question-meta">
+            <div>
+              <div class="step" id="stepLabel">Step 1 of 14</div>
+              <h3 id="questionTitle"></h3>
+            </div>
+            <div class="chip" id="dimensionLabel"></div>
+          </div>
+          <div class="question-desc" id="questionDesc"></div>
+          <div class="options" id="optionsContainer"></div>
+          <div class="controls">
+            <button class="ghost" id="backBtn">Back</button>
+            <button class="cta" id="continueBtn">Next</button>
+          </div>
+        </div>
+
+        <div class="stage hidden" id="resultStage">
+          <div class="question-meta">
+            <div>
+              <div class="step">Complete</div>
+              <h3>Design Constraint Object &amp; Authority Prompt</h3>
+            </div>
+            <div class="chip">Reusable across any AI website generator</div>
+          </div>
+          <div class="question-desc">Your answers have been translated into numeric rules for typography, spacing, color usage, layout, components, and motion. The authority prompt forces adherence and includes a built-in critique + refinement loop.</div>
+
+          <div class="result">
+            <div class="result-card">
+              <div class="question-meta" style="margin-bottom:4px;">
+                <h4>Design Constraint Object</h4>
+                <button class="copy" data-target="designJson">Copy JSON</button>
+              </div>
+              <div class="code-block" id="designJson"></div>
+            </div>
+            <div class="result-card">
+              <div class="question-meta" style="margin-bottom:4px;">
+                <h4>Authority Prompt</h4>
+                <button class="copy" data-target="promptText">Copy prompt</button>
+              </div>
+              <div class="code-block" id="promptText"></div>
+            </div>
+          </div>
+
+          <div class="result" style="margin-top:12px;">
+            <div class="result-card">
+              <h4>Key system highlights</h4>
+              <div id="highlightList" class="question-desc" style="margin:4px 0 0;"></div>
+            </div>
+            <div class="result-card">
+              <h4>Answer map</h4>
+              <div id="answerMap" class="chip-row"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        id: "visualHierarchy",
+        dimension: "Visual hierarchy",
+        title: "How assertive should the visual hierarchy feel?",
+        desc: "Controls heading scale, weight ranges, and contrast targets.",
+        options: [
+          { value: "calm", label: "Calm, confident", hint: "Gentle hierarchy, balanced margins", apply: (sys) => {
+            sys.typography.scale = 1.16;
+            sys.typography.weightRange = "400-700";
+            sys.colors.contrast.min = 4.2;
+            sys.colors.contrast.max = 8.2;
+            sys.layout.heroRatio = "56/44";
+          }},
+          { value: "balanced", label: "Balanced, editorial", hint: "Crisp headings, measured emphasis", apply: (sys) => {
+            sys.typography.scale = 1.2;
+            sys.typography.weightRange = "500-750";
+            sys.colors.contrast.min = 4.5;
+            sys.colors.contrast.max = 8.8;
+            sys.layout.heroRatio = "62/38";
+          }},
+          { value: "bold", label: "Bold and directive", hint: "Large headings, high contrast, decisive CTA", apply: (sys) => {
+            sys.typography.scale = 1.26;
+            sys.typography.weightRange = "600-850";
+            sys.colors.contrast.min = 5.2;
+            sys.colors.contrast.max = 9.6;
+            sys.layout.heroRatio = "68/32";
+            sys.components.buttons.weight = "700";
+          }}
+        ]
+      },
+      {
+        id: "density",
+        dimension: "Density",
+        title: "How much breathing room should layouts have?",
+        desc: "Sets base spacing unit, section padding, and grid gutter size.",
+        options: [
+          { value: "airy", label: "Airy & slow paced", hint: "Large paddings, relaxed rhythm", apply: (sys) => {
+            sys.spacing.base = 10;
+            sys.spacing.sectionPadding.desktop = 120;
+            sys.spacing.sectionPadding.mobile = 28;
+            sys.layout.gutter = 26;
+          }},
+          { value: "neutral", label: "Neutral & measured", hint: "Default rhythm with clarity", apply: (sys) => {
+            sys.spacing.base = 8;
+            sys.spacing.sectionPadding.desktop = 96;
+            sys.spacing.sectionPadding.mobile = 24;
+            sys.layout.gutter = 22;
+          }},
+          { value: "compact", label: "Compact & information dense", hint: "Tighter grid and text measure", apply: (sys) => {
+            sys.spacing.base = 6;
+            sys.spacing.sectionPadding.desktop = 80;
+            sys.spacing.sectionPadding.mobile = 18;
+            sys.layout.gutter = 18;
+            sys.layout.maxWidth = 1180;
+          }}
+        ]
+      },
+      {
+        id: "aesthetic",
+        dimension: "Aesthetic direction",
+        title: "Choose the aesthetic direction.",
+        desc: "Influences type family, palette accent, radius, and shadow style.",
+        options: [
+          { value: "timeless", label: "Timeless & grounded", hint: "Humanist sans, muted navy palette", apply: (sys) => {
+            sys.typography.family = "Inter, -apple-system, system-ui, sans-serif";
+            sys.typography.personality = "Humanist sans";
+            sys.colors.palette = {
+              primary: "#1f2a44",
+              secondary: "#94a3b8",
+              accent: "#f59e0b",
+              background: "#0b1220",
+              surface: "#0f172a",
+              neutralStrong: "#e2e8f0"
+            };
+            sys.components.radii.card = 14;
+            sys.components.shadows.card = "0 20px 55px rgba(0,0,0,0.32)";
+          }},
+          { value: "futuristic", label: "Futuristic & crisp", hint: "Grotesk, cool tones, glassy edges", apply: (sys) => {
+            sys.typography.family = "'Space Grotesk', 'Inter', system-ui, sans-serif";
+            sys.typography.personality = "Geometric grotesk";
+            sys.colors.palette = {
+              primary: "#0ea5e9",
+              secondary: "#94a3b8",
+              accent: "#a855f7",
+              background: "#080f1b",
+              surface: "#0c1626",
+              neutralStrong: "#e2f3ff"
+            };
+            sys.components.radii.card = 16;
+            sys.components.shadows.card = "0 22px 60px rgba(14,165,233,0.24)";
+            sys.motion.easing = "cubic-bezier(0.16, 0.84, 0.44, 1)";
+          }},
+          { value: "playful", label: "Playful & warm", hint: "Rounded edges, lively accent, softer contrast", apply: (sys) => {
+            sys.typography.family = "'Sora', 'Inter', system-ui, sans-serif";
+            sys.typography.personality = "Friendly sans";
+            sys.colors.palette = {
+              primary: "#2563eb",
+              secondary: "#475569",
+              accent: "#f97316",
+              background: "#0b1120",
+              surface: "#0f172a",
+              neutralStrong: "#f8fafc"
+            };
+            sys.components.radii.card = 18;
+            sys.components.shadows.card = "0 18px 45px rgba(249,115,22,0.24)";
+            sys.components.strokeWeight = 1.5;
+          }},
+          { value: "serious", label: "Serious & institutional", hint: "Low-flair, sharp edges, cooler neutrals", apply: (sys) => {
+            sys.typography.family = "'Inter', system-ui, sans-serif";
+            sys.typography.personality = "Rational sans";
+            sys.colors.palette = {
+              primary: "#0f172a",
+              secondary: "#64748b",
+              accent: "#22c55e",
+              background: "#050816",
+              surface: "#0c1326",
+              neutralStrong: "#e2e8f0"
+            };
+            sys.components.radii.card = 10;
+            sys.components.shadows.card = "0 14px 35px rgba(0,0,0,0.32)";
+            sys.components.strokeWeight = 1;
+          }}
+        ]
+      },
+      {
+        id: "trustExcitement",
+        dimension: "Trust vs excitement",
+        title: "Lean toward trust or excitement?",
+        desc: "Adjusts color emphasis, CTA tone, and shadow usage.",
+        options: [
+          { value: "trust", label: "Trust first", hint: "Cool primaries, restrained accents", apply: (sys) => {
+            sys.colors.emphasis = "Primary-heavy; accent limited to 15% of surfaces";
+            sys.components.buttons.fill = "primary";
+            sys.components.shadows.button = "none";
+            sys.components.strokeWeight = 1.25;
+          }},
+          { value: "balanced", label: "Balanced confidence", hint: "Primary/Accent split with crisp CTA", apply: (sys) => {
+            sys.colors.emphasis = "Primary/accent 60/40 split";
+            sys.components.buttons.fill = "primary + accent for CTAs";
+            sys.components.shadows.button = "0 10px 24px rgba(0,0,0,0.24)";
+          }},
+          { value: "excited", label: "Excitement with guardrails", hint: "Brighter CTA, elevated hero", apply: (sys) => {
+            sys.colors.emphasis = "Accent-forward; accent allowed on CTA, chips, and links";
+            sys.components.buttons.fill = "accent";
+            sys.components.shadows.button = "0 16px 40px rgba(0,0,0,0.28)";
+            sys.colors.contrast.max = Math.min(sys.colors.contrast.max + 0.4, 9.8);
+          }}
+        ]
+      },
+      {
+        id: "complexity",
+        dimension: "Complexity tolerance",
+        title: "Who is the target user?",
+        desc: "Tighter for power users, more relaxed for casual audiences.",
+        options: [
+          { value: "power", label: "Power users", hint: "Denser UI, quick scan patterns", apply: (sys) => {
+            sys.layout.maxWidth = 1240;
+            sys.layout.gridColumns = 12;
+            sys.typography.maxLineLength = 68;
+            sys.components.cardLayout = "Use 3-up grids on desktop";
+          }},
+          { value: "balanced", label: "Balanced", hint: "Standard scan patterns and measures", apply: (sys) => {
+            sys.layout.maxWidth = 1140;
+            sys.typography.maxLineLength = 64;
+          }},
+          { value: "casual", label: "Casual audience", hint: "Fewer decisions per view, more air", apply: (sys) => {
+            sys.layout.maxWidth = 1040;
+            sys.typography.maxLineLength = 58;
+            sys.components.cardLayout = "Use 2-up grids on desktop";
+          }}
+        ]
+      },
+      {
+        id: "rigidity",
+        dimension: "Brand rigidity",
+        title: "How rigid should the visual identity be?",
+        desc: "Controls allowed variants and guardrails for component styling.",
+        options: [
+          { value: "strict", label: "Strict consistency", hint: "One CTA style, locked spacing stack", apply: (sys) => {
+            sys.brand.rigidity = "Strict";
+            sys.brand.rules = [
+              "Only one CTA fill and one outline style.",
+              "No ad-hoc colors beyond palette.",
+              "Use a fixed spacing stack: base * [1,2,3,4,6,8]."
+            ];
+          }},
+          { value: "guided", label: "Guided flexibility", hint: "Minor variants allowed with limits", apply: (sys) => {
+            sys.brand.rigidity = "Guided";
+            sys.brand.rules = [
+              "Max two CTA styles (primary + subtle).",
+              "Accent usage capped at 25% of visible surfaces.",
+              "One border radius family across components."
+            ];
+          }},
+          { value: "flex", label: "Creative freedom with rails", hint: "More motion and color flex", apply: (sys) => {
+            sys.brand.rigidity = "Flexible with constraints";
+            sys.brand.rules = [
+              "Accent gradients allowed on hero only.",
+              "Max two motion patterns per page.",
+              "Cards may use soft or flat elevation; keep radius consistent."
+            ];
+            sys.motion.allowed = "micro + expressive hero";
+          }}
+        ]
+      },
+      {
+        id: "motion",
+        dimension: "Motion preference",
+        title: "What motion profile should be allowed?",
+        desc: "Defines permitted animations, durations, and easing.",
+        options: [
+          { value: "static", label: "None / prefers reduced motion", hint: "Only essential focus states", apply: (sys) => {
+            sys.motion.allowed = "focus + disclosure only";
+            sys.motion.duration = { fast: 0, base: 0, slow: 0 };
+            sys.motion.easing = "linear";
+          }},
+          { value: "subtle", label: "Subtle micro-interactions", hint: "Micro hover, soft transitions", apply: (sys) => {
+            sys.motion.allowed = "micro interactions; no parallax";
+            sys.motion.duration = { fast: 140, base: 200, slow: 280 };
+            sys.motion.easing = "cubic-bezier(0.32, 0.64, 0.45, 1)";
+          }},
+          { value: "expressive", label: "Expressive but purposeful", hint: "Layered hero, eased entrances", apply: (sys) => {
+            sys.motion.allowed = "micro + hero choreography";
+            sys.motion.duration = { fast: 160, base: 240, slow: 360 };
+            sys.motion.easing = "cubic-bezier(0.25, 0.9, 0.35, 1)";
+          }}
+        ]
+      },
+      {
+        id: "contrast",
+        dimension: "Contrast tolerance",
+        title: "How much contrast should UI elements carry?",
+        desc: "Sets contrast targets and background layering rules.",
+        options: [
+          { value: "low", label: "Low contrast", hint: "Soft layering, gentle accents", apply: (sys) => {
+            sys.colors.contrast.min = 4.0;
+            sys.colors.contrast.max = 7.8;
+            sys.colors.layers = "Use tinted surfaces; avoid pure black/white blocks.";
+          }},
+          { value: "medium", label: "Medium contrast", hint: "Standard accessibility targets", apply: (sys) => {
+            sys.colors.contrast.min = 4.5;
+            sys.colors.contrast.max = 8.8;
+            sys.colors.layers = "Use subtle elevation with 6–8% difference between layers.";
+          }},
+          { value: "high", label: "High contrast", hint: "Sharper edges, strong CTA pop", apply: (sys) => {
+            sys.colors.contrast.min = 5.5;
+            sys.colors.contrast.max = 9.8;
+            sys.colors.layers = "Use crisp surfaces; CTA should hit max contrast.";
+            sys.components.strokeWeight = 1.5;
+          }}
+        ]
+      },
+      {
+        id: "emotionalTone",
+        dimension: "Emotional tone",
+        title: "What emotional tone should the visuals convey?",
+        desc: "Guides accent hue, typography casing, and CTA density.",
+        options: [
+          { value: "neutral", label: "Neutral & steady", hint: "Objective, minimal flourish", apply: (sys) => {
+            sys.typography.casing = "Sentence case for all headings.";
+            sys.colors.accentTone = "Cool";
+          }},
+          { value: "confident", label: "Confident & direct", hint: "Heavier headings, firm CTA", apply: (sys) => {
+            sys.typography.weightRange = "550-800";
+            sys.typography.casing = "Title case headings, sentence case body.";
+            sys.components.buttons.weight = "650";
+            sys.colors.accentTone = "Vivid";
+          }},
+          { value: "warm", label: "Warm & inviting", hint: "Rounded accents, softer edges", apply: (sys) => {
+            sys.typography.casing = "Sentence case, softer subhead capitalization.";
+            sys.components.radii.button = 12;
+            sys.colors.accentTone = "Warm";
+          }},
+          { value: "energetic", label: "Energetic", hint: "Punchy accent and motion", apply: (sys) => {
+            sys.typography.weightRange = "600-850";
+            sys.components.buttons.weight = "700";
+            sys.colors.accentTone = "Punchy";
+          }}
+        ]
+      },
+      {
+        id: "ctaEmphasis",
+        dimension: "CTA emphasis",
+        title: "How dominant should primary CTAs be?",
+        desc: "Adjusts button sizing, weight, and outline usage.",
+        options: [
+          { value: "supportive", label: "Supportive, not shouting", hint: "Balanced CTAs, more text weight", apply: (sys) => {
+            sys.components.buttons.radius = 10;
+            sys.components.buttons.height = 46;
+            sys.components.buttons.style = "Solid primary with thin outline secondary";
+          }},
+          { value: "dominant", label: "Dominant CTA", hint: "High contrast, larger hit area", apply: (sys) => {
+            sys.components.buttons.radius = 12;
+            sys.components.buttons.height = 52;
+            sys.components.buttons.weight = "700";
+            sys.components.buttons.style = "Primary solid + ghost tertiary";
+            sys.colors.contrast.min = Math.max(sys.colors.contrast.min, 4.8);
+          }},
+          { value: "quiet", label: "Quiet but clear", hint: "Outline heavy, text-forward", apply: (sys) => {
+            sys.components.buttons.radius = 8;
+            sys.components.buttons.height = 44;
+            sys.components.buttons.style = "Outline primary; filled reserved for hero";
+          }}
+        ]
+      },
+      {
+        id: "imagery",
+        dimension: "Imagery treatment",
+        title: "How should imagery be treated?",
+        desc: "Impacts card framing, overlays, and copy-to-visual ratio.",
+        options: [
+          { value: "minimal", label: "Minimal imagery", hint: "Iconic shapes, copy first", apply: (sys) => {
+            sys.layout.imageRatio = "30/70 visual-to-copy";
+            sys.components.cardOverlay = "No overlays; keep flat color blocks.";
+          }},
+          { value: "balanced", label: "Balanced editorial", hint: "Even split between visuals and copy", apply: (sys) => {
+            sys.layout.imageRatio = "50/50 visual-to-copy";
+            sys.components.cardOverlay = "Use 8% tinted overlays on imagery";
+          }},
+          { value: "rich", label: "Rich imagery", hint: "Bigger hero visuals, supporting copy", apply: (sys) => {
+            sys.layout.imageRatio = "65/35 visual-to-copy";
+            sys.components.cardOverlay = "Gradient overlays allowed on hero imagery";
+          }}
+        ]
+      },
+      {
+        id: "gridRhythm",
+        dimension: "Grid rhythm",
+        title: "Grid rhythm preference?",
+        desc: "Determines symmetry, offset usage, and column spans.",
+        options: [
+          { value: "symmetrical", label: "Symmetrical", hint: "Predictable, centered layout", apply: (sys) => {
+            sys.layout.gridStyle = "Symmetrical; prefer centered 2-4-8 spans";
+            sys.layout.heroRatio = sys.layout.heroRatio || "60/40";
+          }},
+          { value: "dynamic", label: "Dynamic", hint: "Offset sections and asymmetry", apply: (sys) => {
+            sys.layout.gridStyle = "Asymmetrical allowed; alternate 7/5 and 5/7 splits";
+            sys.layout.offsets = "Use 24px offset staggering between sections";
+          }},
+          { value: "tight", label: "Tight and direct", hint: "Full-bleed stripes, high clarity", apply: (sys) => {
+            sys.layout.gridStyle = "Full-width stripes with constrained inner width";
+            sys.layout.offsets = "Minimal offsets; rely on spacing shifts only";
+          }}
+        ]
+      },
+      {
+        id: "typographyFeel",
+        dimension: "Typography personality",
+        title: "What typography personality fits best?",
+        desc: "Sets base font class and weight ranges.",
+        options: [
+          { value: "geometric", label: "Geometric & technical", hint: "Precise, futuristic geometry", apply: (sys) => {
+            sys.typography.personality = "Geometric sans";
+            sys.typography.family = "'Space Grotesk', 'Inter', system-ui, sans-serif";
+            sys.typography.weightRange = "500-780";
+          }},
+          { value: "humanist", label: "Humanist & approachable", hint: "Friendly, legible curves", apply: (sys) => {
+            sys.typography.personality = "Humanist sans";
+            sys.typography.family = "'Inter', system-ui, sans-serif";
+            sys.typography.weightRange = "400-720";
+          }},
+          { value: "serif", label: "Editorial serif blend", hint: "Classic with modern spacing", apply: (sys) => {
+            sys.typography.personality = "Serif display + sans body";
+            sys.typography.family = "'Inter', system-ui, sans-serif";
+            sys.typography.altFamily = "'DM Serif Display', 'Times New Roman', serif";
+            sys.typography.scale = Math.max(sys.typography.scale, 1.22);
+            sys.layout.maxWidth = Math.min(sys.layout.maxWidth, 1100);
+          }}
+        ]
+      },
+      {
+        id: "uiCrispness",
+        dimension: "UI crispness",
+        title: "Edge and depth preference?",
+        desc: "Controls radius, shadow, and stroke usage.",
+        options: [
+          { value: "flat", label: "Flat & minimal", hint: "Hard edges, strokes over shadows", apply: (sys) => {
+            sys.components.radii.card = Math.max(sys.components.radii.card - 4, 8);
+            sys.components.shadows.card = "Shadow-less; use 1px strokes";
+            sys.components.strokeWeight = 1;
+          }},
+          { value: "soft", label: "Soft & welcoming", hint: "Rounded corners, light lift", apply: (sys) => {
+            sys.components.radii.card = sys.components.radii.card + 2;
+            sys.components.shadows.card = "0 18px 45px rgba(0,0,0,0.24)";
+          }},
+          { value: "tactile", label: "Tactile & layered", hint: "Heavier shadows, layered surfaces", apply: (sys) => {
+            sys.components.radii.card = sys.components.radii.card + 2;
+            sys.components.shadows.card = "0 28px 70px rgba(0,0,0,0.35)";
+            sys.components.strokeWeight = 1.4;
+          }}
+        ]
+      }
+    ];
+
+    const state = {
+      index: 0,
+      answers: {}
+    };
+
+    const baseSystem = () => ({
+      typography: {
+        family: "'Inter', system-ui, sans-serif",
+        altFamily: "'Inter', system-ui, sans-serif",
+        personality: "Humanist sans",
+        weightRange: "450-750",
+        scale: 1.2,
+        lineHeight: { body: 1.6, heading: 1.2 },
+        casing: "Title case headings; sentence case body",
+        letterSpacing: { heading: -0.02, ui: 0 },
+        maxLineLength: 64
+      },
+      spacing: {
+        base: 8,
+        scale: 1.4,
+        sectionPadding: { mobile: 22, desktop: 96 },
+        stack: [1, 2, 3, 4, 6, 8]
+      },
+      layout: {
+        maxWidth: 1120,
+        textWidth: 720,
+        gridColumns: 12,
+        gutter: 22,
+        heroRatio: "62/38",
+        gridStyle: "Symmetrical by default",
+        offsets: "Minimal",
+        imageRatio: "50/50 visual-to-copy"
+      },
+      colors: {
+        palette: {
+          primary: "#1f2a44",
+          secondary: "#94a3b8",
+          accent: "#7c3aed",
+          background: "#0b1220",
+          surface: "#0f172a",
+          neutralStrong: "#e2e8f0"
+        },
+        contrast: { min: 4.5, max: 8.8 },
+        emphasis: "Primary/accent 60/40 split",
+        layers: "Use subtle elevation",
+        accentTone: "Vivid"
+      },
+      components: {
+        radii: { card: 14, button: 10 },
+        buttons: {
+          style: "Solid primary, outline secondary",
+          height: 48,
+          weight: "650",
+          fill: "primary",
+          radius: 10
+        },
+        cardLayout: "Use 3-up grids where space allows",
+        cardOverlay: "Tinted overlays optional",
+        strokeWeight: 1.2,
+        shadows: {
+          card: "0 20px 55px rgba(0,0,0,0.32)",
+          button: "0 12px 28px rgba(0,0,0,0.22)"
+        }
+      },
+      motion: {
+        allowed: "micro interactions; no parallax",
+        duration: { fast: 140, base: 200, slow: 260 },
+        easing: "cubic-bezier(0.32, 0.64, 0.45, 1)"
+      },
+      brand: {
+        rigidity: "Guided",
+        rules: [
+          "Max two CTA styles (primary + subtle).",
+          "Accent usage capped at 25% of surfaces.",
+          "One radius family across components."
+        ]
+      }
+    });
+
+    const landingStage = document.getElementById("landingStage");
+    const questionStage = document.getElementById("questionStage");
+    const resultStage = document.getElementById("resultStage");
+    const startBtn = document.getElementById("startBtn");
+    const backBtn = document.getElementById("backBtn");
+    const continueBtn = document.getElementById("continueBtn");
+    const questionTitle = document.getElementById("questionTitle");
+    const questionDesc = document.getElementById("questionDesc");
+    const stepLabel = document.getElementById("stepLabel");
+    const dimensionLabel = document.getElementById("dimensionLabel");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const progressBar = document.getElementById("progressBar");
+    const designJson = document.getElementById("designJson");
+    const promptText = document.getElementById("promptText");
+    const highlightList = document.getElementById("highlightList");
+    const answerMap = document.getElementById("answerMap");
+
+    function setStage(stage) {
+      landingStage.classList.add("hidden");
+      questionStage.classList.add("hidden");
+      resultStage.classList.add("hidden");
+      stage.classList.remove("hidden");
+    }
+
+    startBtn.addEventListener("click", () => {
+      setStage(questionStage);
+      renderQuestion();
+    });
+
+    backBtn.addEventListener("click", () => {
+      if (state.index > 0) {
+        state.index -= 1;
+        renderQuestion();
+      } else {
+        setStage(landingStage);
+      }
+    });
+
+    continueBtn.addEventListener("click", () => {
+      const q = questions[state.index];
+      if (!state.answers[q.id]) return;
+      if (state.index < questions.length - 1) {
+        state.index += 1;
+        renderQuestion();
+      } else {
+        buildResults();
+      }
+    });
+
+    optionsContainer.addEventListener("click", (event) => {
+      const optionEl = event.target.closest(".option");
+      if (!optionEl) return;
+      const value = optionEl.dataset.value;
+      const q = questions[state.index];
+      state.answers[q.id] = value;
+      [...optionsContainer.children].forEach((el) => el.classList.remove("active"));
+      optionEl.classList.add("active");
+    });
+
+    document.querySelectorAll(".copy").forEach((btn) => {
+      const originalLabel = btn.textContent;
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        const text = document.getElementById(target).innerText;
+        navigator.clipboard.writeText(text);
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.textContent = originalLabel), 1600);
+      });
+    });
+
+    function renderQuestion() {
+      const total = questions.length;
+      const current = questions[state.index];
+      stepLabel.textContent = `Step ${state.index + 1} of ${total}`;
+      questionTitle.textContent = current.title;
+      questionDesc.textContent = current.desc;
+      dimensionLabel.textContent = current.dimension;
+      const progress = ((state.index) / total) * 100;
+      progressBar.style.width = `${progress}%`;
+      optionsContainer.innerHTML = "";
+
+      current.options.forEach((opt) => {
+        const option = document.createElement("button");
+        option.className = "option";
+        option.dataset.value = opt.value;
+        option.innerHTML = `<h4>${opt.label}</h4><p>${opt.hint}</p>`;
+        if (state.answers[current.id] === opt.value) option.classList.add("active");
+        optionsContainer.appendChild(option);
+      });
+
+      continueBtn.textContent = state.index === total - 1 ? "Generate system" : "Next";
+      backBtn.textContent = state.index === 0 ? "Back" : "Back";
+    }
+
+    function applyAnswers() {
+      const system = baseSystem();
+      questions.forEach((q) => {
+        const selected = q.options.find((o) => o.value === state.answers[q.id]);
+        if (selected && typeof selected.apply === "function") {
+          selected.apply(system);
+        }
+      });
+      return system;
+    }
+
+    function buildHighlights(system) {
+      const highlights = [
+        `Type: ${system.typography.personality} (${system.typography.family}) • Scale: ${system.typography.scale} • Weight: ${system.typography.weightRange}`,
+        `Spacing: base ${system.spacing.base}px, stack ${system.spacing.stack.join("×")} • Section padding ${system.spacing.sectionPadding.mobile}/${system.spacing.sectionPadding.desktop}px`,
+        `Colors: primary ${system.colors.palette.primary}, accent ${system.colors.palette.accent}, contrast ${system.colors.contrast.min}-${system.colors.contrast.max} `,
+        `Layout: max width ${system.layout.maxWidth}px, grid ${system.layout.gridColumns} cols, gutter ${system.layout.gutter}px, hero ${system.layout.heroRatio}`,
+        `Components: button height ${system.components.buttons.height}px (${system.components.buttons.style}), radius ${system.components.radii.card}px cards / ${system.components.buttons.radius}px buttons`,
+        `Motion: ${system.motion.allowed} • durations ${JSON.stringify(system.motion.duration)} • easing ${system.motion.easing}`,
+        `Brand control: ${system.brand.rigidity}; ${system.brand.rules.join(" ")}`
+      ];
+      highlightList.innerHTML = highlights.map((h) => `<div style="margin-bottom:6px;">${h}</div>`).join("");
+    }
+
+    function buildPrompt(system) {
+      const prompt = `You are an expert product designer and frontend engineer. Use the following design constraint system without improvisation.\n
+Design System (do not alter):
+- Typography: ${system.typography.personality}; primary family ${system.typography.family}; alt ${system.typography.altFamily}; weight range ${system.typography.weightRange}; scale ${system.typography.scale}; line-height body ${system.typography.lineHeight.body}, heading ${system.typography.lineHeight.heading}; casing ${system.typography.casing}; letter spacing h ${system.typography.letterSpacing.heading}, ui ${system.typography.letterSpacing.ui}; max line length ${system.typography.maxLineLength}ch.
+- Spacing: base ${system.spacing.base}px with ${system.spacing.stack.join("×")} stack; scale ${system.spacing.scale}; section padding mobile ${system.spacing.sectionPadding.mobile}px, desktop ${system.spacing.sectionPadding.desktop}px.
+- Layout: grid ${system.layout.gridColumns} cols, gutter ${system.layout.gutter}px, max width ${system.layout.maxWidth}px (text ${system.layout.textWidth}px); hero ratio ${system.layout.heroRatio}; grid style ${system.layout.gridStyle}; offsets ${system.layout.offsets}; imagery ratio ${system.layout.imageRatio}.
+- Colors: palette primary ${system.colors.palette.primary}, secondary ${system.colors.palette.secondary}, accent ${system.colors.palette.accent}, background ${system.colors.palette.background}, surface ${system.colors.palette.surface}, neutral-strong ${system.colors.palette.neutralStrong}; contrast ${system.colors.contrast.min}-${system.colors.contrast.max}; emphasis ${system.colors.emphasis}; layers ${system.colors.layers}; accent tone ${system.colors.accentTone}.
+- Components: card radius ${system.components.radii.card}px, button radius ${system.components.buttons.radius}px; button height ${system.components.buttons.height}px; button weight ${system.components.buttons.weight}; fill ${system.components.buttons.fill}; style ${system.components.buttons.style}; card layout ${system.components.cardLayout}; overlays ${system.components.cardOverlay}; stroke ${system.components.strokeWeight}px; shadows card ${system.components.shadows.card}; button shadow ${system.components.shadows.button}.
+- Motion: allowed ${system.motion.allowed}; durations (fast ${system.motion.duration.fast}ms, base ${system.motion.duration.base}ms, slow ${system.motion.duration.slow}ms); easing ${system.motion.easing}.
+- Brand rails: rigidity ${system.brand.rigidity}; rules ${system.brand.rules.join(" ")}.
+
+Authority rules:
+1) Do not invent new colors, fonts, radii, or spacings. Use only the system values above.
+2) Start with design reasoning. Outline layout plan, hierarchy, spacing stack, and component roles before any HTML/CSS.
+3) Enforce accessibility: meet contrast targets ${system.colors.contrast.min}+; never exceed ${system.colors.contrast.max}; keep line length under ${system.typography.maxLineLength}ch.
+4) Motion must respect ${system.motion.allowed}; durations within listed ranges; prefer ${system.motion.easing} easing.
+5) CTA discipline: ${system.components.buttons.style}; apply ${system.colors.emphasis}; ${system.brand.rules.join(" ")}.
+6) Perform an internal critique: list 5 quick issues (contrast, rhythm, alignment, density, motion safety), fix them, then present final output.
+7) Output: production-ready HTML + CSS with component tokens matching this system. Include a short rationale on how the system was honored.`;
+      return prompt;
+    }
+
+    function buildAnswerMap() {
+      answerMap.innerHTML = "";
+      questions.forEach((q) => {
+        const val = state.answers[q.id];
+        const opt = q.options.find((o) => o.value === val);
+        if (opt) {
+          const div = document.createElement("div");
+          div.className = "chip";
+          div.textContent = `${q.dimension}: ${opt.label}`;
+          answerMap.appendChild(div);
+        }
+      });
+    }
+
+    function buildResults() {
+      const system = applyAnswers();
+      const systemJson = JSON.stringify(system, null, 2);
+      designJson.textContent = systemJson;
+      const prompt = buildPrompt(system);
+      promptText.textContent = prompt;
+      buildHighlights(system);
+      buildAnswerMap();
+      setStage(resultStage);
+      progressBar.style.width = "100%";
+    }
+  </script>
+</body>
+</html>
